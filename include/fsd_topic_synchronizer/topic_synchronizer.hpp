@@ -26,7 +26,6 @@
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
 #include <deque>
-//#include <fsd_common/cpputils.hpp>
 #include <functional>
 #include <map>
 #include <memory>
@@ -37,15 +36,14 @@
 namespace fsd {
 namespace mf {
 
-/// The smart-pointer type ROS uses for messages. Mind that MessageT::ConstrPtr is not guaranteed
-/// to be the same, for example when using pcl_conversions and subscribing to a pcl::PointCloud,
-/// the pcl::PointCloud::ConstPtr is a std smart pointer with newer (>1.10 I think) PCL versions,
+/// MsgPtr is the smart-pointer type ROS uses for messages. Mind that MessageT::ConstrPtr is not necessarily the same type:
+// For example, when using pcl_conversions and subscribing to a pcl::PointCloud,
+/// the pcl::PointCloud::ConstPtr is a std smart pointer instead of a boost smart pointer. (with newer PCL versions)
 template <typename MsgT>
 using MsgPtr = boost::shared_ptr<const MsgT>;
+
 namespace detail {
-/// MessageId identifies a message uniquely. Used to decouple the synchronization policy
-/// from the message content and message type. The synchronization policy needs only to know the
-/// timestamp in most cases.
+/// MessageId uniquely identifies a message. Used to decouple the synchronization policy from the message content and message type. In most cases, the synchronization policy only needs to know the timestamp.
 struct MessageId {
   MessageId(const ros::Time &stamp, size_t queue_index) : stamp(stamp), queue_index(queue_index) {}
   /// The timestamp, copied from the header. It uniquely identifies a message because duplicate
@@ -142,9 +140,9 @@ struct SyncPolicy {
   /// the policy has to call removed_buffered_msg_ for messages which are not going to be emmitted
   /// again.
   std::function<void(const std::vector<MessageIdT> &message_ids)> emit_messages_;
-  /// As the topic synchronizer buffers by default all incoming messages and only the policy
-  /// knows which messages should be dropped, this callback should be called to free a buffered
-  /// message. Messages can be freed if they are too old for example.
+  /// Since the topic synchronizer buffers all incoming messages by default and only the policy
+  /// knows which messages should be dropped, this callback should be called to release a buffered
+  /// message. Messages can be released after after they have been emitted or if they are too old.
   std::function<void(const MessageIdT &message_id)> removed_buffered_msg_;
 };
 
@@ -333,7 +331,7 @@ private:
 
   template <size_t Index>
   void add_message_to_tuple_for_index(MessagesTupleT &msg_tuple, const MessageIdT &msg_id) {
-    /// TODO remove, cannot happen
+    /// TODO remove, this likely cannot happen
     if (queue_index_to_message_type_index_.at(msg_id.queue_index) != Index) {
       throw std::invalid_argument("The message_id " + msg_id.to_string() +
                                   " does not math the Index arg: " + std::to_string(Index));

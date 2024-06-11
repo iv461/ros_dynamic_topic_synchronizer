@@ -1,5 +1,5 @@
 /****************************************************************************
- 
+
  * Copyright © 2018-2020 Fraunhofer FKIE, StarkStrom Augsburg
  * Authors: Ivo Ivanov, Timo Röhling
  *
@@ -23,19 +23,15 @@ namespace fsd {
 namespace mf {
 
 ApproxTimePolicy::ApproxTimePolicy(
-  const ros::Duration &max_msg_age,
-  const OptionalT<ros::Duration> &timeout,
-  std::function<void(const std::vector<MessageIdT> &message_ids)> emit_messages, 
-  std::function<void(const MessageIdT &message_id)> removed_buffered_ms) 
-                                   :
-                                   SyncPolicy(emit_messages, removed_buffered_ms) {
+    const ros::Duration &max_msg_age, const OptionalT<ros::Duration> &timeout,
+    std::function<void(const std::vector<MessageIdT> &message_ids)> emit_messages,
+    std::function<void(const MessageIdT &message_id)> removed_buffered_ms)
+    : SyncPolicy(emit_messages, removed_buffered_ms) {
   max_msg_age_ = max_msg_age;
   timeout_ = timeout;
 }
 
 void ApproxTimePolicy::add(MessageIdT msg_id) {
-  //fsd::StopWatch sw;
-  //fsd::StopWatch sw_overall;
   ros::Time cutoff = msg_id.stamp - max_msg_age_;
   last_timestamps_.at(msg_id.queue_index) = msg_id.stamp;
   remove_too_old_msgs(cutoff);
@@ -64,11 +60,8 @@ void ApproxTimePolicy::add(MessageIdT msg_id) {
   } else {
     head = msg_id;
   }
-  // ROS_WARN_STREAM("Add pre-emit took " << sw.tic_ms() << " ms");
-  //sw.reset();
   while (try_to_emit())
     ;
-  // ROS_WARN_STREAM("Add took " << sw_overall.tic_ms() << " ms");
 }
 
 void ApproxTimePolicy::set_number_of_topics(uint32_t number_of_topics) {
@@ -106,7 +99,6 @@ void ApproxTimePolicy::remove_too_old_msgs(ros::Time cutoff) {
 }
 
 bool ApproxTimePolicy::try_to_emit() {
-  //fsd::StopWatch sw;
   /// All heads which are not timeouted should be initialized
   bool all_heads_initialized = true;
   for (size_t i = 0; i < heads_.size(); i++) {
@@ -117,29 +109,25 @@ bool ApproxTimePolicy::try_to_emit() {
     return false;
   }
   select_pivot();
-  // ROS_WARN_STREAM("select_pivot took " << sw.tic_ms() << " ms");
   /// Happens only when no head is initialized in case of timeout
   if (!pivot_) {
     return false;
   }
 
-  //sw.reset();
   bool can_improve = can_still_find_better_match_in_any_queue();
-  // ROS_WARN_STREAM("Finding match took " << sw.tic_ms() << " ms");
   if (can_improve) {
     return false;
   }
 
   std::vector<MessageIdT> messages_to_be_emitted;
   for (auto &head : heads_) {
-    /// Can only be not present in case of timeout
+    /// head is only missing in case of a timeout
     if (head) {
       messages_to_be_emitted.push_back(head.get());
     }
   }
-  //sw.reset();
+
   emit_messages_(messages_to_be_emitted);
-  // ROS_WARN_STREAM("emit_messages_ took " << sw.tic_ms() << " ms");
   pivot_ = {};
   remove_last_emmitted_msgs();
 
