@@ -3,6 +3,7 @@
 #include <fsd_topic_synchronizer/topic_synchronizer.hpp>
 #include <iostream>
 #include <unordered_set>
+
 using fsd::mf::ApproxTimePolicy;
 using fsd::mf::MessageIdT;
 using fsd::mf::detail::MessageIdHash;
@@ -162,7 +163,7 @@ TEST_F(FixtureTwoTopics, TwoTopicsSmallPhaseShift) {
   // for the last message which is the most recent
   // TODO why not 49 ??
   ASSERT_EQ(message_inserted_calls_.size(), number_of_messages);
-  /// TODO check that all emitted messages where also removed
+  /// TODO check that all emitted messages were also removed
 }
 
 TEST_F(FixtureTwoTopics, DifferentFrequencies) {
@@ -201,7 +202,5 @@ TEST_F(FixtureTwoTopics, TimeoutTest) {}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  ros::init(argc, argv, "approx_time_policy_test");
-
   return RUN_ALL_TESTS();
 }
