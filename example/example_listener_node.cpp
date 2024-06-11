@@ -6,7 +6,6 @@
 #include <fsd_topic_synchronizer/topic_synchronizer.hpp>
 #include <memory>
 
-void on_combined_messagess(const CombinedMessages &combined_messages) {}
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "fsd_topic_synchronizer_test_listener");
@@ -23,8 +22,7 @@ int main(int argc, char **argv) {
   auto policy = std::make_unique<fsd::mf::ApproxTimePolicy>(ros::Duration(1.), ros::Duration(0.2));
 
   auto synchronizer = std::make_unique<SyncT>(
-      private_node_handle_,
-
+      private_node_handle,
       [&](const auto &images, const auto &camera_infos, const auto &point_clouds) {
         /// HINT: The type of the arguments is a std::map from topic name to the messages for each
         /// message type, here we have four message types.
@@ -43,11 +41,12 @@ int main(int argc, char **argv) {
                           << cloud_msg->width * cloud_msg->height << " points.");
         }
       },
-      policy);
+      std::move(policy));
 
   /// Specify all the topics to subscribe on, grouped by the message types.
   /// I.e. first all Image topics, then all CameraInfo topics, and then all PointCloud2 topics.
   /// This topic list can be provided at runtime, re-subscription is possible as well.
+  /// The last argument ("1") is the queue size. It is the same for all subscribers.
   synchronizer->subscribe(
       {{{"/image1", "/image2"}, {"/camera_info0", "/camera_info1"}, {"/point_cloud"}}}, 1);
 

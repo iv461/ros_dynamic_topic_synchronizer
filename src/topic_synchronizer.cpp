@@ -65,7 +65,7 @@ void ApproxTimePolicy::add(MessageIdT msg_id) {
     head = msg_id;
   }
   // ROS_WARN_STREAM("Add pre-emit took " << sw.tic_ms() << " ms");
-  sw.reset();
+  //sw.reset();
   while (try_to_emit())
     ;
   // ROS_WARN_STREAM("Add took " << sw_overall.tic_ms() << " ms");
@@ -123,7 +123,7 @@ bool ApproxTimePolicy::try_to_emit() {
     return false;
   }
 
-  sw.reset();
+  //sw.reset();
   bool can_improve = can_still_find_better_match_in_any_queue();
   // ROS_WARN_STREAM("Finding match took " << sw.tic_ms() << " ms");
   if (can_improve) {
@@ -137,7 +137,7 @@ bool ApproxTimePolicy::try_to_emit() {
       messages_to_be_emitted.push_back(head.get());
     }
   }
-  sw.reset();
+  //sw.reset();
   emit_messages_(messages_to_be_emitted);
   // ROS_WARN_STREAM("emit_messages_ took " << sw.tic_ms() << " ms");
   pivot_ = {};
