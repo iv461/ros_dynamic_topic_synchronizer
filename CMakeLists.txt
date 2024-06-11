@@ -67,5 +67,5 @@ if(CATKIN_ENABLE_TESTING)
   find_package(catkin REQUIRED rostest)
 
   catkin_add_gtest(approx_time_policy_test test/approx_time_policy_test.cpp)
-  target_link_libraries(approx_time_policy_test fsd_common ${catkin_LIBRARIES})
+  target_link_libraries(approx_time_policy_test fsd_topic_synchronizer ${catkin_LIBRARIES})
 endif() # CATKIN_ENABLE_TESTING

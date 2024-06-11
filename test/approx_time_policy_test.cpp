@@ -2,7 +2,7 @@
 
 #include <fsd_topic_synchronizer/topic_synchronizer.hpp>
 #include <iostream>
-
+#include <unordered_set>
 using fsd::mf::ApproxTimePolicy;
 using fsd::mf::MessageIdT;
 using fsd::mf::detail::MessageIdHash;

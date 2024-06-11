@@ -30,6 +30,14 @@ which should give the expected output:
 TODO
 ```
 
+# Run tests 
+
+To build and execute the unit-tests for the synchronization policy, just run: 
+
+```sh
+catkin test fsd_topic_synchronizer
+```
+
 # License 
 
 Licensed under Apache 2

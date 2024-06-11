@@ -1,5 +1,5 @@
 /****************************************************************************
- 
+
  * Copyright © 2018-2020 Fraunhofer FKIE, StarkStrom Augsburg
  * Authors: Ivo Ivanov, Timo Röhling
  *
@@ -28,10 +28,10 @@
 #include <deque>
 //#include <fsd_common/cpputils.hpp>
 #include <functional>
-#include <unordered_map>
 #include <map>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace fsd {
@@ -400,7 +400,7 @@ private:
   /// MessageId. For each message type there can be multiple topics.
   std::tuple<std::unordered_map<MessageIdT, MsgPtr<MessagesT>, detail::MessageIdHash>...>
       message_buffers_;
-};  // namespace mf
+};
 
 }  // namespace mf
 }  // namespace fsd
