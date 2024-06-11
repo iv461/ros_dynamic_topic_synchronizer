@@ -8,7 +8,7 @@
 
 
 int main(int argc, char **argv) {
-  ros::init(argc, argv, "fsd_topic_synchronizer_test_listener");
+  ros::init(argc, argv, "example_listener_node");
   ros::NodeHandle nh;
   ros::NodeHandle private_node_handle("~");
 
@@ -26,17 +26,17 @@ int main(int argc, char **argv) {
       [&](const auto &images, const auto &camera_infos, const auto &point_clouds) {
         /// HINT: The type of the arguments is a std::map from topic name to the messages for each
         /// message type, here we have four message types.
-        size_t num_images_received = images.count("image1") + images.count("image1");
+        size_t num_images_received = images.count("/image1") + images.count("/image2");
         size_t num_cam_infos_received =
-            camera_infos.count("camera_info0") + camera_infos.count("camera_info1");
-        size_t num_point_clouds_received = point_clouds.count("point_cloud");
+            camera_infos.count("/camera_info1") + camera_infos.count("/camera_info2");
+        size_t num_point_clouds_received = point_clouds.count("/point_cloud");
         ROS_INFO_STREAM("Received " << num_images_received << " images, " << num_cam_infos_received
                                     << " camera infos and " << num_point_clouds_received
                                     << " point clouds.");
 
         /// Then, access the message for the desired topic if they were received
         if (num_point_clouds_received > 0) {
-          sensor_msgs::PointCloud2::ConstPtr cloud_msg = point_clouds.at("point_cloud");
+          sensor_msgs::PointCloud2::ConstPtr cloud_msg = point_clouds.at("/point_cloud");
           ROS_INFO_STREAM("Received point cloud message with "
                           << cloud_msg->width * cloud_msg->height << " points.");
         }
@@ -48,7 +48,10 @@ int main(int argc, char **argv) {
   /// This topic list can be provided at runtime, re-subscription is possible as well.
   /// The last argument ("1") is the queue size. It is the same for all subscribers.
   synchronizer->subscribe(
-      {{{"/image1", "/image2"}, {"/camera_info0", "/camera_info1"}, {"/point_cloud"}}}, 1);
+      {{{"/image1", "/image2"}, {"/camera_info1", "/camera_info2"}, {"/point_cloud"}}}, 1);
+
+  ros::spin();
+  //ROS_INFO("Subscribed to: "<< "")
 
   return 0;
 }
