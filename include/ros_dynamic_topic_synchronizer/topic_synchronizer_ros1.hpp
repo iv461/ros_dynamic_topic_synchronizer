@@ -2,29 +2,45 @@
 #pragma once
 
 #include <ros/ros.h>
-#include <topic_synchronizer.hpp>
 
 namespace fsd {
 namespace mf {
-namespace ros1 {
 
 namespace detail {
+
+/// MsgPtr is the smart-pointer type ROS uses for messages. Mind that MessageT::ConstrPtr is not
+/// necessarily the same type:
+// For example, when using pcl_conversions and subscribing to a pcl::PointCloud,
+/// the pcl::PointCloud::ConstPtr is a std smart pointer instead of a boost smart pointer. (with
+/// newer PCL versions). ROS 2 uses the std-pointer
+template <typename MsgT>
+using MsgPtr = boost::shared_ptr<const MsgT>;
 
 /* @brief Typed subscribers, to know how to subscribe without having to specify the type of the message to the subscribe function.
 * Needed only for ROS 1 since ROS 2 does not use the type-erasing subscribers anymore.
  */
 template <typename MessageT>
 struct Subscriber {
-  void subscribe(ros::NodeHandle &node_handle, std::string topic_name, uint32_t queue_length,
+  void subscribe(ros::NodeHandle &node_handle, const std::string &topic_name, uint32_t queue_length,
                  std::function<void(const MsgPtr<MessageT> &)> callback) {
     sub_ = node_handle.subscribe<MessageT>(topic_name, queue_length, callback);
   }
   ros::Subscriber sub_;
 };
-}
 
+using NodeHandle = ros::NodeHandle;
+}
+}  // namespace mf
+}  // namespace fsd
+
+#include <ros_dynamic_topic_synchronizer/topic_synchronizer.hpp>
+namespace fsd {
+namespace mf {
+
+namespace ros1 {
 template <typename... MessagesT>
 using TopicSynchronizer = TopicSynchronizer<true, MessagesT...>;
+}
 
 }  // namespace mf
 }  // namespace fsd

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15.1)
-project(fsd_topic_synchronizer)
+project(ros_dynamic_topic_synchronizer)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -42,7 +42,7 @@ target_link_libraries(fsd_topic_synchronizer
     )
 
 add_executable(example_listener_node
-    example/example_listener_node.cpp
+    example/example_listener_node_ros1.cpp
     )
 
 add_dependencies(example_listener_node

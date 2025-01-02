@@ -5,8 +5,11 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/PointCloud2.h>
 
-#include <ros_dynamic_topic_synchronizer/topic_synchronizer.hpp>
 #include <memory>
+
+#include <ros_dynamic_topic_synchronizer/topic_synchronizer_ros1.hpp>
+
+using namespace std::literals::chrono_literals;
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "example_listener_node");
@@ -20,7 +23,9 @@ int main(int argc, char **argv) {
                                            sensor_msgs::PointCloud2>;
 
   /// Create the approximate time policy with a 1s max message age and .2s timeout.
-  auto policy = std::make_unique<fsd::mf::ApproxTimePolicy>(ros::Duration(1.), ros::Duration(0.2));
+  fsd::mf::Duration timeout = 200ms;
+  auto policy = std::make_unique<fsd::mf::ApproxTimePolicy>(1s, timeout);
+
 
   auto synchronizer = std::make_unique<SyncT>(
       private_node_handle,

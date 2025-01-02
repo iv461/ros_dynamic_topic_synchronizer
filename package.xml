@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>fsd_topic_synchronizer</name>
+  <name>ros_dynamic_topic_synchronizer</name>
   <version>1.0.0</version>
-  <description>The fsd_topic_synchronizer package</description>
+  <description>A flexible topic synchronizer for a varible number of topics and a timeout</description>
   <author email="ivo.ivanov@hs-augsburg.de">Ivo Ivanov</author>
   <maintainer email="ivo.ivanov@hs-augsburg.de">Ivo Ivanov</maintainer>
 

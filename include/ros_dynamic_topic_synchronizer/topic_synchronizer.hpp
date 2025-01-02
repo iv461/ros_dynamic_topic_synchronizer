@@ -16,6 +16,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include <ros_dynamic_topic_synchronizer/policies.hpp>
+
 namespace fsd {
 namespace mf {
 
@@ -32,18 +34,8 @@ template <bool use_ros1, typename... MessagesT>
 class TopicSynchronizer {
   constexpr static auto NUM_MESSAGE_TYPES = sizeof...(MessagesT);
 
-/// MsgPtr is the smart-pointer type ROS uses for messages. Mind that MessageT::ConstrPtr is not
-/// necessarily the same type:
-// For example, when using pcl_conversions and subscribing to a pcl::PointCloud,
-/// the pcl::PointCloud::ConstPtr is a std smart pointer instead of a boost smart pointer. (with
-/// newer PCL versions). ROS 2 uses the std-pointer
-  template <typename MsgT>
-  using MsgPtr = std::conditional_t<use_ros1, boost::shared_ptr<const MsgT>, std::shared_ptr<const MsgT> >;
-
-  using NodeHandle = std::conditional_t<use_ros1, ros::NodeHandle, rclcpp::Node>;
-
-  template <typename MsgT>
-  using Subscriber = std::conditional_t< ros1::detail::Subscriber<MsgT>, rclcpp::Subscription<MsgT> >;
+  template<typename MsgT>
+  using MsgPtr = typename detail::MsgPtr<MsgT>;
 
 public:
   /// @brief The type of the user callback it a function receiving maps for each message type
@@ -59,7 +51,7 @@ public:
    * @param sync_policy The already created synchronization policy with which the topics are
    * synchronized.
    */
-  TopicSynchronizer(const NodeHandle &node_handle, UserCallbackT user_callback,
+  TopicSynchronizer(const fsd::mf::detail::NodeHandle &node_handle, UserCallbackT user_callback,
                     std::unique_ptr<SyncPolicy> sync_policy)
       : sync_policy_(std::move(sync_policy)),
         node_handle_(node_handle),
@@ -168,11 +160,13 @@ private:
             node_handle_, topic_name, queue_length,
             [this, queue_index](const auto &msg) { msg_callback<message_index>(msg, queue_index); });
       } else {
+        /*
         /// Subscribing in ROS 2 is a bit different:
         using TypeOftheSubscriber = std::tuple_element_t<message_index, SubscribersTuple>;
         using MessageType = typename TypeOftheSubscriber::ROSMessageType; /// TODO maybe consider: ROS 2 added a feature of mapping messages to custom types, i.e. SubscribedType vs. ROSMessageType. We currently ignore it here, i.e. assume ROSMessageType == SubscribedType.
         subs_array.at(i_topic) = node_handle_->create_subscription<MessageType>(topic_name, queue_length,
             [this, queue_index](const auto &msg) { msg_callback<message_index>(msg, queue_index); });
+        */
          
       }
     }
@@ -180,11 +174,18 @@ private:
 
   template <size_t message_index, typename MsgPtrT>
   void msg_callback(MsgPtrT msg, size_t queue_index) {
-    MessageIdT msg_id{msg->header.stamp, queue_index};
+    Time timestamp;
+    if constexpr(use_ros1) {
+      timestamp = Time(std::chrono::seconds(msg->header.stamp.sec) + std::chrono::nanoseconds(msg->header.stamp.nsec)); 
+    } else {
+      timestamp = msg->header.stamp.to_chrono();
+    }
+
+    MessageIdT msg_id{timestamp, queue_index};
     auto &msg_buff = std::get<message_index>(message_buffers_);
     if (msg_buff.count(msg_id) > 0) {
-      std::string warn_msg = "Ignored trying to add a message with duplicate timestamp, timestamp of the message: " + std::to_string(msg_id.stamp);
-      ros_warn(warn_msg);
+      /*std::string warn_msg = "Ignored trying to add a message with duplicate timestamp, timestamp of the message: " + std::to_string(msg_id.stamp);
+      ros_warn(warn_msg);*/ // TODO enable warning 
       return;
     }
     /// Store the message
@@ -197,16 +198,16 @@ private:
     if constexpr(use_ros1) {
       ROS_WARN_STREAM(msg);
     } else {
-      RCLCPP_INFO(node_handle_->get_logger(), msg);
+      //RCLCPP_INFO(node_handle_->get_logger(), msg);
     } 
   }
 
-  NodeHandle node_handle_;
+  detail::NodeHandle node_handle_;
   UserCallbackT user_callback_;
   
   std::unique_ptr<SyncPolicy> sync_policy_;
 
-  using SubscribersTuple = std::tuple<std::vector<Subscriber<MessagesT>>...>;
+  using SubscribersTuple = std::tuple<std::vector<detail::Subscriber<MessagesT>>...>;
   SubscribersTuple subscribers_;
 
   /// Mapping between a queue index and topic names

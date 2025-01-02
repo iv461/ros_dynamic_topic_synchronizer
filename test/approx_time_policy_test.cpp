@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <fsd_topic_synchronizer/topic_synchronizer.hpp>
+#include <ros_dynamic_topic_synchronizer/topic_synchronizer.hpp>
 #include <iostream>
 #include <unordered_set>
 

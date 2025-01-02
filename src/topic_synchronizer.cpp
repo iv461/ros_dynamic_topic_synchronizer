@@ -17,13 +17,14 @@
  *
  ****************************************************************************/
 
-#include <fsd_topic_synchronizer/topic_synchronizer.hpp>
+#include <ros_dynamic_topic_synchronizer/policies.hpp>
+#include <iostream>
 
 namespace fsd {
 namespace mf {
 
 ApproxTimePolicy::ApproxTimePolicy(
-    const ros::Duration &max_msg_age, const OptionalT<ros::Duration> &timeout,
+    const Duration &max_msg_age, const OptionalT<Duration> &timeout,
     std::function<void(const std::vector<MessageIdT> &message_ids)> emit_messages,
     std::function<void(const MessageIdT &message_id)> removed_buffered_ms)
     : SyncPolicy(emit_messages, removed_buffered_ms) {
@@ -32,7 +33,7 @@ ApproxTimePolicy::ApproxTimePolicy(
 }
 
 void ApproxTimePolicy::add(MessageIdT msg_id) {
-  ros::Time cutoff = msg_id.stamp - max_msg_age_;
+  auto cutoff = msg_id.stamp - max_msg_age_;
   last_timestamps_.at(msg_id.queue_index) = msg_id.stamp;
   remove_too_old_msgs(cutoff);
   determine_timeouts(msg_id.stamp);
@@ -41,18 +42,21 @@ void ApproxTimePolicy::add(MessageIdT msg_id) {
   if (head) {
     auto newest_timestamp = queue.empty() ? head.get().stamp : queue.back().stamp;
     if (msg_id.stamp < newest_timestamp) {
-      ROS_WARN_STREAM(
-          "Trying to add a timestamp which is older than the newest, messages are "
+      /*
+      std::cout <<
+          "WARNING: Trying to add a timestamp which is older than the newest, messages are "
           "arriving "
           "in non-chronological order. Resetting... (message in queue has timestamp: "
-          << newest_timestamp << ", timestamp of the new message: " << msg_id.stamp << ")");
+          << newest_timestamp << ", timestamp of the new message: " << msg_id.stamp << ")";
+      */
       reset();
     }
     if (newest_timestamp == msg_id.stamp) {
-      ROS_WARN_STREAM(
-          "Ignored trying to add a duplicate timestamp, timestamp of the "
+      /*std::cout <<
+          "WARNING: Ignored trying to add a duplicate timestamp, timestamp of the "
           "message: "
-          << msg_id.stamp);
+          << msg_id.stamp;
+          */
       removed_buffered_msg_(msg_id);
       return;
     }
@@ -72,7 +76,7 @@ void ApproxTimePolicy::set_number_of_topics(uint32_t number_of_topics) {
   topics_timed_out_.resize(number_of_topics_);
 }
 
-void ApproxTimePolicy::remove_too_old_msgs(ros::Time cutoff) {
+void ApproxTimePolicy::remove_too_old_msgs(Time cutoff) {
   for (size_t i_q = 0; i_q < queues_.size(); i_q++) {
     auto &head = heads_.at(i_q);
     auto &queue = queues_.at(i_q);
@@ -217,7 +221,7 @@ void ApproxTimePolicy::select_pivot() {
   }
 }
 
-void ApproxTimePolicy::determine_timeouts(ros::Time current_timestamp) {
+void ApproxTimePolicy::determine_timeouts(Time current_timestamp) {
   if (!timeout_) {
     return;
   }
@@ -231,7 +235,8 @@ void ApproxTimePolicy::determine_timeouts(ros::Time current_timestamp) {
       topics_timed_out_.at(i) = true;
     }
     if (topics_timed_out_.at(i) && !last_timeout) {
-      ROS_WARN_STREAM("Topic " << topic_names_for_queues_.at(i) << " has timed out");
+      /// TODO maybe add callback
+      //ROS_WARN_STREAM("Topic " << topic_names_for_queues_.at(i) << " has timed out");
     }
   }
 }

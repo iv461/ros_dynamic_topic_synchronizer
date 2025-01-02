@@ -7,19 +7,34 @@
 // the package fkie_message_filters
 #pragma once 
 
+#include <chrono> 
+#include <string> 
+
+#include <boost/functional/hash.hpp>
+
+#include <boost/optional/optional_io.hpp>
+#include <boost/optional.hpp>
+
+#include <functional>
+#include <array>
+#include <deque>
 
 namespace fsd {
 namespace mf {
+using Clock = std::chrono::system_clock;
+using Time = std::chrono::time_point<Clock>;
+using Duration = Clock::duration;
 
 namespace detail {
+
 /// MessageId uniquely identifies a message. Used to decouple the synchronization policy from the
 /// message content and message type. In most cases, the synchronization policy only needs to know
 /// the timestamp.
 struct MessageId {
-  MessageId(const ros::Time &stamp, size_t queue_index) : stamp(stamp), queue_index(queue_index) {}
+  MessageId(const Time &stamp, size_t queue_index) : stamp(stamp), queue_index(queue_index) {}
   /// The timestamp, copied from the header. It uniquely identifies a message on a topic because duplicate
   /// timestamps on the same topic are not allowed. (The TopicSynchronizer filters duplicates if it receives any.)
-  ros::Time stamp;
+  Time stamp;
 
   /// The queue index, a queue is created for each topic.
   size_t queue_index;
@@ -31,7 +46,7 @@ struct MessageId {
   friend bool operator!=(const MessageId &lhs, const MessageId &rhs) { return !(lhs == rhs); }
 
   std::string to_string() const {
-    return "stamp: " + std::to_string(stamp.toNSec()) +
+    return "stamp: " + std::to_string(0) + // TODO print stamp
            ", queue_index: " + std::to_string(queue_index);
   }
 
@@ -42,7 +57,11 @@ struct MessageId {
 struct MessageIdHash {
   size_t operator()(const MessageId &c) const noexcept {
     size_t seed = 0;
-    boost::hash_combine(seed, c.stamp.toNSec());
+    /// TODO std timestamps can already be hashed, use it maybe
+    auto nsec_since = std::chrono::duration_cast<std::chrono::nanoseconds>(
+                     c.stamp.time_since_epoch()).count();
+
+    boost::hash_combine(seed, nsec_since);
     boost::hash_combine(seed, c.queue_index);
     return seed;
   }
@@ -81,6 +100,7 @@ void call_for_index(F func, boost::optional<size_t> index = boost::none) {
 using MessageIdT = detail::MessageId;
 template <typename T>
 using OptionalT = boost::optional<T>;
+
 /**
  * @brief Base class for the different synchronization policies.
  */
@@ -129,7 +149,7 @@ struct ApproxTimePolicy : public SyncPolicy {
    *
    */
   ApproxTimePolicy(
-      const ros::Duration &max_msg_age, const OptionalT<ros::Duration> &timeout,
+      const Duration &max_msg_age, const OptionalT<Duration> &timeout,
       std::function<void(const std::vector<MessageIdT> &message_ids)> emit_messages = nullptr,
       std::function<void(const MessageIdT &message_id)> removed_buffered_ms = nullptr);
 
@@ -144,13 +164,13 @@ private:
   using QueueT = std::deque<MessageIdT>;
 
   /// Returns the absolute time difference between two timestamps
-  static ros::Duration abs_difference(ros::Time t1, ros::Time t2) {
+  static Duration abs_difference(Time t1, Time t2) {
     return t1 > t2 ? t1 - t2 : t2 - t1;
   }
 
   void set_number_of_topics(uint32_t number_of_topics);
 
-  void remove_too_old_msgs(ros::Time cutoff);
+  void remove_too_old_msgs(Time cutoff);
 
   /// returns whether more can be emitted
   bool try_to_emit();
@@ -165,28 +185,28 @@ private:
 
   void select_pivot();
 
-  void determine_timeouts(ros::Time current_timestamp);
+  void determine_timeouts(Time current_timestamp);
 
   uint32_t number_of_topics_{0};
 
   std::vector<std::string> topic_names_for_queues_;
-  ros::Duration max_msg_age_;
-  OptionalT<ros::Duration> max_allowed_difference_;
+  Duration max_msg_age_;
+  OptionalT<Duration> max_allowed_difference_;
   /// If no timeout is set, then all topics are required always
-  OptionalT<ros::Duration> timeout_{1.};
+  OptionalT<Duration> timeout_{std::chrono::seconds(1)};
   /// @brief the pivot is a queue index
   OptionalT<uint32_t> pivot_;
 
   /// The pivot timestamp identifies the message in the queue that we selected as the pivot. Note
   /// that the pivot queue can still receive new messages, so we need to remember this exact
   /// message.
-  OptionalT<ros::Time> pivot_timestamp_;
+  OptionalT<Time> pivot_timestamp_;
 
   std::vector<QueueT> queues_;
   std::vector<OptionalT<MessageIdT>> heads_;
   /// For each topic the timestamps of the last received messages. Not initialized when no messages
   /// were received yet.
-  std::vector<OptionalT<ros::Time>> last_timestamps_;
+  std::vector<OptionalT<Time>> last_timestamps_;
   /// For each topic a truth value whether we this topic timed out
   std::vector<bool> topics_timed_out_;
 };
