@@ -1,7 +1,10 @@
 # fsd_topic_synchronizer
 
-This is a ROS package for a topic synchronizer to approximately synchronize multiple topics similar to the [message_filters](wiki.ros.org/message_filters)-package.
-Unlike the [message_filters](wiki.ros.org/message_filters) package however 
+This is a Robot Operating System (ROS) package for synchronizing multiple topics by approximately matching the message timestamps, similarly to the [message_filters](wiki.ros.org/message_filters)-package.
+Unlike the [message_filters](wiki.ros.org/message_filters) package however, the number of messages does not need to be set at compile-time, instead it can be done at runtime. 
+This package thereore removes the limitation of having to know the number of topics at compile, instead only the message types have to be provided.
+
+It also provides one additional feature that is very useful for implementing sensor fusion applications: A timeout. 
 
 # Requirements
 
@@ -10,7 +13,7 @@ Unlike the [message_filters](wiki.ros.org/message_filters) package however
 # Example
 
 In [examples/], there is a simple talker-listener example that synchronizes three different topics. 
-It demonstrates the approximate time-stamp matching as well as the time-out behavior where after a topic "times out" (i.e. if a sensor dies), the node still receives the synchronized set of the remaining sensors.
+It demonstrates the approximate time-stamp matching as well as the time-out behavior. After a topic "times out" (for example due to sensor malfunction), we still receive the synchronized messages of the remaining sensors.
 
 After building the package, just start the listener by 
 
@@ -40,7 +43,7 @@ catkin test fsd_topic_synchronizer
 
 # License 
 
-Licensed under Apache 2
+This code is licensed under Apache 2 license.
 
 
 
