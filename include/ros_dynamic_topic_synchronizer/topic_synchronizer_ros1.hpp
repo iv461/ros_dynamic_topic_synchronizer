@@ -3,9 +3,9 @@
 
 #include <ros/ros.h>
 
+/// First, add the details needed for ROS 1:
 namespace fsd {
 namespace mf {
-
 namespace detail {
 
 /// MsgPtr is the smart-pointer type ROS uses for messages. Mind that MessageT::ConstrPtr is not
@@ -16,7 +16,7 @@ namespace detail {
 template <typename MsgT>
 using MsgPtr = boost::shared_ptr<const MsgT>;
 
-/* @brief Typed subscribers, to know how to subscribe without having to specify the type of the message to the subscribe function.
+/* @brief Typed subscriber, to know how to subscribe without having to specify the type of the message to the subscribe function.
 * Needed only for ROS 1 since ROS 2 does not use the type-erasing subscribers anymore.
  */
 template <typename MessageT>
