@@ -1,7 +1,7 @@
 # ros_dynamic_topic_synchronizer
 
-This is a Robot Operating System (ROS) package for synchronizing multiple topics by approximately matching their message timestamps, similar to the [message_filters](wiki.ros.org/message_filters)-package.
-Unlike the [message_filters](wiki.ros.org/message_filters) package however, the number of messages does not need to be set at compile time, but can be provided at runtimme instead.
+This is a Robot Operating System (ROS) package for synchronizing multiple topics by approximately matching their message timestamps, similar to the [message_filters](https://wiki.ros.org/message_filters)-package.
+Unlike the `message_filters` package however, the number of messages does not need to be set at compile time, but can be provided at runtimme instead.
 
 This package therefore removes the limitation of having to know the number of topics at compile time, instead only the message types need to be provided.
 
