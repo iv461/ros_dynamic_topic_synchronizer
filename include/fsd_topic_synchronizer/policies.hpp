@@ -7,18 +7,9 @@
 // the package fkie_message_filters
 #pragma once 
 
-#include <policies.hpp>
 
 namespace fsd {
 namespace mf {
-
-/// MsgPtr is the smart-pointer type ROS uses for messages. Mind that MessageT::ConstrPtr is not
-/// necessarily the same type:
-// For example, when using pcl_conversions and subscribing to a pcl::PointCloud,
-/// the pcl::PointCloud::ConstPtr is a std smart pointer instead of a boost smart pointer. (with
-/// newer PCL versions)
-template <typename MsgT>
-using MsgPtr = boost::shared_ptr<const MsgT>;
 
 namespace detail {
 /// MessageId uniquely identifies a message. Used to decouple the synchronization policy from the
@@ -57,17 +48,6 @@ struct MessageIdHash {
   }
 };
 
-/* @brief Typed subscribers, to know how to subscribe without having to specify the type of the message to the subscribe function.
- */
-template <typename MessageT>
-struct Subscriber {
-  void subscribe(ros::NodeHandle &node_handle, std::string topic_name, uint32_t queue_length,
-                 std::function<void(const MsgPtr<MessageT> &)> callback) {
-    sub_ = node_handle.subscribe<MessageT>(topic_name, queue_length, callback);
-  }
-  ros::Subscriber sub_;
-};
-
 template <typename F, size_t... Index>
 void call_for_index_apply(F func, boost::optional<size_t> index,
                           std::index_sequence<Index...> integer_seq) {
@@ -85,11 +65,11 @@ void call_for_index_apply(F func, boost::optional<size_t> index,
 }
 
 /**
- * @brief Gets a function template which receives an index, and instantiates
- * it for every index from 0 to max_index. Then it calls the instantiation
- * at index passed as an argument to this function.
+ * @brief This function receives a function template that has a single index parameter, and instantiates
+ * this function template for every index in the range of 0 to max_index. Then it calls all these instantiations
+ * and additionally passesa to them their index as a regular function argument.
  *
- * @tparam F has to be a function type void f(size_t Index). The passed index is a constexpr
+ * @tparam F has to be a function template of type void f<size_t>(size_t Index). The passed index is a constexpr.
  * @tparam max_index > 0. If not provided, the function is called for all indices
  */
 template <size_t max_index, typename F>
