@@ -36,31 +36,38 @@
 namespace fsd {
 namespace mf {
 
-/// MsgPtr is the smart-pointer type ROS uses for messages. Mind that MessageT::ConstrPtr is not necessarily the same type:
+/// MsgPtr is the smart-pointer type ROS uses for messages. Mind that MessageT::ConstrPtr is not
+/// necessarily the same type:
 // For example, when using pcl_conversions and subscribing to a pcl::PointCloud,
-/// the pcl::PointCloud::ConstPtr is a std smart pointer instead of a boost smart pointer. (with newer PCL versions)
+/// the pcl::PointCloud::ConstPtr is a std smart pointer instead of a boost smart pointer. (with
+/// newer PCL versions)
 template <typename MsgT>
 using MsgPtr = boost::shared_ptr<const MsgT>;
 
 namespace detail {
-/// MessageId uniquely identifies a message. Used to decouple the synchronization policy from the message content and message type. In most cases, the synchronization policy only needs to know the timestamp.
+/// MessageId uniquely identifies a message. Used to decouple the synchronization policy from the
+/// message content and message type. In most cases, the synchronization policy only needs to know
+/// the timestamp.
 struct MessageId {
   MessageId(const ros::Time &stamp, size_t queue_index) : stamp(stamp), queue_index(queue_index) {}
-  /// The timestamp, copied from the header. It uniquely identifies a message because duplicate
-  /// timestamps on the same topic are not allowed, that means the TopicSynchronizer filters
-  /// duplicates if it receives any.
+  /// The timestamp, copied from the header. It uniquely identifies a message on a topic because duplicate
+  /// timestamps on the same topic are not allowed. (The TopicSynchronizer filters duplicates if it receives any.)
   ros::Time stamp;
+
   /// The queue index, a queue is created for each topic.
   size_t queue_index;
 
+  /// Are two IDs the same ?
   friend bool operator==(const MessageId &lhs, const MessageId &rhs) {
     return lhs.stamp == rhs.stamp && lhs.queue_index == rhs.queue_index;
   }
   friend bool operator!=(const MessageId &lhs, const MessageId &rhs) { return !(lhs == rhs); }
+
   std::string to_string() const {
     return "stamp: " + std::to_string(stamp.toNSec()) +
            ", queue_index: " + std::to_string(queue_index);
   }
+
   friend std::ostream &operator<<(std::ostream &os, const MessageId &ob) {
     return os << ob.to_string();
   }
@@ -74,8 +81,7 @@ struct MessageIdHash {
   }
 };
 
-/* @brief Typed subscriber to know how to subscribe w/o specifying the type to the subscribe
- * function
+/* @brief Typed subscribers, to know how to subscribe without having to specify the type of the message to the subscribe function.
  */
 template <typename MessageT>
 struct Subscriber {
