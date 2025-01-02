@@ -4,10 +4,10 @@
 #pragma once
 
 #include <array>
+/// TODO: Use C++17, std::optional
 #include <boost/functional/hash.hpp>
 #include <boost/optional.hpp>
 #include <boost/optional/optional_io.hpp>
-#include <deque>
 #include <functional>
 #include <map>
 #include <memory>
@@ -20,7 +20,9 @@ namespace fsd {
 namespace mf {
 
 /**
- * @brief The topic synchronization
+ * @brief  The implementation of the topic synchronizer: Subscribing, combining messages using the policy, and calling the user callback.
+ *
+ * @tparam use_ros1: Whether to use the ROS 1 or ROS 2 API. Generic implementation based on conditional compilation.  
  *
  * @tparam MessagesT a list of the different message types to be synchronized. No pointer types
  * should be given, instead the plain message type, for example sensor_msgs::Image.

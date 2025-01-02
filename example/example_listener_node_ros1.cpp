@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
   /// The type of the message synchronizer: Here we provide every distinct ROS-message type. Unlike
   /// to the message_filters-synchronizer, we do not need to specify the *number* of topics of a
   /// message type we want to subscribe to at compile time: This can be done at runtime.
-  using SyncT = fsd::mf::TopicSynchronizer<sensor_msgs::Image, sensor_msgs::CameraInfo,
+  using SyncT = fsd::mf::ros1::TopicSynchronizer<sensor_msgs::Image, sensor_msgs::CameraInfo,
                                            sensor_msgs::PointCloud2>;
 
   /// Create the approximate time policy with a 1s max message age and .2s timeout.
