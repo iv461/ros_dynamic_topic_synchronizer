@@ -41,7 +41,7 @@ struct ROS1Adapter {
 }  // namespace mf
 }  // namespace fsd
 
-#include <ros_dynamic_topic_synchronizer/topic_synchronizer.hpp>
+#include <ros_dynamic_topic_synchronizer/impl/topic_synchronizer.hpp>
 namespace fsd {
 namespace mf {
 

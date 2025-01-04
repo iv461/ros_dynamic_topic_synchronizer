@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <ros_dynamic_topic_synchronizer/policies.hpp>
+#include <ros_dynamic_topic_synchronizer/impl/policies.hpp>
 
 namespace fsd {
 namespace mf {
