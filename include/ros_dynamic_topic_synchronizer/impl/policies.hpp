@@ -151,7 +151,7 @@ struct ApproxTimePolicy : public SyncPolicy {
    */
   ApproxTimePolicy(
       const Duration &max_msg_age, const OptionalT<Duration> &timeout,
-      bool print_verbose,
+      bool print_verbose = false,
       std::function<void(const std::vector<MessageIdT> &message_ids)> emit_messages = nullptr,
       std::function<void(const MessageIdT &message_id)> removed_buffered_ms = nullptr);
 

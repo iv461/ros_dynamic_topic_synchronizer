@@ -32,6 +32,8 @@ struct ROS1Adapter {
   using Clock = std::chrono::system_clock;
   using Time = std::chrono::time_point<Clock>;
   using Duration = Clock::duration;
+  
+  using SubOption = uint32_t; // The queue length
 
   static Time stamp_to_chrono(ros::Time &stamp) {
       return Time(std::chrono::seconds(stamp.sec) + std::chrono::nanoseconds(stamp.nsec));
@@ -40,14 +42,13 @@ struct ROS1Adapter {
   static void log_warn(NodeHandle &node, const std::string &msg) {
       ROS_WARN(msg);
   }
-  
+
   static void log_info(NodeHandle &node, const std::string &msg) {
       ROS_INFO(msg);
   }
 
-  template<typename Sub, typename F>
-  static auto subscribe(NodeHandle &node_handle, Sub &sub, std::string &topic_name, F cb, uint32_t queue_length) {
-      using MessageType = typename Sub::Msg;
+  template<typename MessageType, typename F>
+  static auto subscribe(NodeHandle &node_handle, Subscriber<MessageType> &sub, const std::string &topic_name, F cb, uint32_t queue_length) {
       sub.sub_ = node_handle.subscribe<MessageType>(topic_name, queue_length, cb);
       return sub;
   }

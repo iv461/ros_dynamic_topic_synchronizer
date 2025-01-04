@@ -67,10 +67,9 @@ public:
    * arbitrary number of topics for each topic type.
    * @param sub_option The queue length (ROS 1) or QoS (ROS 2) of the subscribers, either for each subscriber a seprate one, or for each subscriber the same one.
    */
-  template<typename SubOption>
   void subscribe(
       const std::array<std::vector<std::string>, NUM_MESSAGE_TYPES> &topic_names_for_each_topic_type,
-      const std::variant<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>, SubOption> &sub_option) {
+      const std::variant<std::array<std::vector<ROSAdapter::SubOption>, NUM_MESSAGE_TYPES>, ROSAdapter::SubOption> &sub_option) {
       check_arguments(topic_names_for_each_topic_type, sub_option);
       
       
@@ -94,12 +93,11 @@ public:
 
     /// Subscribe too all message types
     detail::call_for_index<NUM_MESSAGE_TYPES>([&](auto Index) {
-
-      std::vector<SubOption> sub_options;
-      if(std::holds_alternative<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>>(sub_option)) {
-        sub_options = std::get<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>>(sub_option[Index]);
+      std::vector<ROSAdapter::SubOption> sub_options;
+      if(std::holds_alternative<std::array<std::vector<ROSAdapter::SubOption>, NUM_MESSAGE_TYPES>>(sub_option)) {
+        sub_options = std::get<std::array<std::vector<ROSAdapter::SubOption>, NUM_MESSAGE_TYPES>>(sub_option)[Index];
       } else {
-        sub_options.resize(topic_names_for_each_topic_type[Index].size(), std::get<SubOption>(sub_option));
+        sub_options.resize(topic_names_for_each_topic_type[Index].size(), std::get<ROSAdapter::SubOption>(sub_option));
       }
 
       subscribe_single_message_type<Index>(std::get<Index>(topic_names_for_each_topic_type),
@@ -112,19 +110,19 @@ public:
 private:
   using MessagesTupleT = std::tuple<std::map<std::string, MsgPtr<MessagesT>>...>;
 
-  template<typename SubOption>
   void check_arguments(const std::array<std::vector<std::string>, NUM_MESSAGE_TYPES> &topic_names_for_each_topic_type,
-      const std::variant<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>, SubOption> &queue_lengths) {
-
-      if(std::holds_alternative<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>>(queue_lengths)) { /// If the queue lengths is a list
+      const std::variant<std::array<std::vector<ROSAdapter::SubOption>, NUM_MESSAGE_TYPES>, ROSAdapter::SubOption> &sub_option) {
+      if(std::holds_alternative<std::array<std::vector<ROSAdapter::SubOption>, NUM_MESSAGE_TYPES>>(sub_option)) { /// If the queue lengths is a list
           /// Check consistent lengths
+          const auto &sub_options = std::get<std::array< std::vector< ROSAdapter::SubOption >, NUM_MESSAGE_TYPES > >(sub_option);
           for(int i = 0; i < topic_names_for_each_topic_type.size(); i++) {
-              if(topic_names_for_each_topic_type[i].size() != queue_lengths[i].size()) {
+              if(topic_names_for_each_topic_type[i].size() != sub_options[i].size()) {
                 throw std::invalid_argument("The number of topics and queue lenghts must be consistent, but instead for topic type {}, {} topic names and {} queue length arguments were given.");
               }
           }
       }
   }
+
   void emit_messages(const std::vector<MessageIdT> &message_ids) {
     MessagesTupleT msg_tuple;
     /// Fills in the message in the passed tuple of vectors of messages
@@ -170,10 +168,10 @@ private:
     std::get<Index>(msg_tuple).emplace(topic_name, buff.at(msg_id));
   }
 
-  /// Subscribe too all topics of the same message type
-  template <size_t message_index, typename SubOption>
+  /// Subscribe to all topics of the same message type
+  template <size_t message_index>
   void subscribe_single_message_type(const std::vector<std::string> &topic_names,
-                                     const std::vector<SubOption> &sub_options) {
+                                     const std::vector<ROSAdapter::SubOption> &sub_options) {
     auto &subs_array = std::get<message_index>(subscribers_);
     subs_array.resize(topic_names.size());
 
@@ -181,9 +179,12 @@ private:
       const auto &topic_name = topic_names.at(i_topic);
       auto queue_index = topic_name_to_queue_index_.at(topic_name);
 
+      using ThisMsg = typename std::tuple_element_t<message_index, std::tuple<MessagesT...>>;
+
       subs_array.at(i_topic) = 
-        ROSAdapter::subscribe(node_handle_, topic_name, 
-          [this, queue_index](const auto &msg) { msg_callback<message_index>(msg, queue_index); }, sub_options.at(i_topic));
+        ROSAdapter::subscribe<ThisMsg>(node_handle_, subs_array.at(i_topic), topic_name, 
+          [this, queue_index](MsgPtr<ThisMsg> msg) { 
+              msg_callback<message_index>(msg, queue_index); }, sub_options.at(i_topic));
     }
   }
 

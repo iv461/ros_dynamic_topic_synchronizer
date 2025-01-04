@@ -22,6 +22,7 @@ public:
 
     using Timer = rclcpp::TimerBase::SharedPtr;
 
+    using SubOption = rclcpp::QoS;
 
     template<typename Msg>
     using Subscriber = typename rclcpp::Subscription<Msg>::SharedPtr;
@@ -42,9 +43,8 @@ public:
       RCLCPP_INFO_STREAM(node->get_logger(), msg);
     }
 
-    template<typename Sub, typename F>
-    static auto subscribe(NodeHandle &node, Sub &sub, std::string &topic_name, F cb, rclcpp::QoS &qos) {
-        using MessageType = typename Sub::ROSMessageType;
+    template<typename MessageType, typename F>
+    static auto subscribe(NodeHandle &node, Subscriber<MessageType> &sub, const std::string &topic_name, F cb, const rclcpp::QoS &qos) {
         return node->create_subscription<MessageType>(topic_name, qos, cb);
     }
 
