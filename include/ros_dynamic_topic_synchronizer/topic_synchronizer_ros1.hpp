@@ -35,16 +35,16 @@ struct ROS1Adapter {
   
   using SubOption = uint32_t; // The queue length
 
-  static Time stamp_to_chrono(ros::Time &stamp) {
+  static Time stamp_to_chrono(const ros::Time &stamp) {
       return Time(std::chrono::seconds(stamp.sec) + std::chrono::nanoseconds(stamp.nsec));
   }
 
   static void log_warn(NodeHandle &node, const std::string &msg) {
-      ROS_WARN(msg);
+      ROS_WARN_STREAM(msg);
   }
 
   static void log_info(NodeHandle &node, const std::string &msg) {
-      ROS_INFO(msg);
+      ROS_INFO_STREAM(msg);
   }
 
   template<typename MessageType, typename F>
