@@ -2,6 +2,7 @@
 #pragma once
 
 #include <ros/ros.h>
+#include <chrono> 
 
 /// First, add the details needed for ROS 1:
 namespace fsd {
@@ -22,33 +23,41 @@ struct ROS1Adapter {
   /* @brief Typed subscriber, to know how to subscribe without having to specify the type of the message to the subscribe function.
   * Needed only for ROS 1 since ROS 2 does not use the type-erasing subscribers anymore.
   */
-  template <typename MessageT>
+  template <typename _MessageT>
   struct Subscriber {
-    void subscribe(ros::NodeHandle &node_handle, const std::string &topic_name, uint32_t queue_length,
-                  std::function<void(const MsgPtr<MessageT> &)> callback) {
-      sub_ = node_handle.subscribe<MessageT>(topic_name, queue_length, callback);
-    }
+    using Msg = _MessageT;
     ros::Subscriber sub_;
   };
 
-  template<typename Cb, typename Msg>
-  auto subscribe(Subscriber<Msg> &sub, NodeHandle &nh, const std::string &topic, size_t queue_length, Cb callback) {
-      sub.subscribe(node_handle_, topic_name, queue_length,
+  using Clock = std::chrono::system_clock;
+  using Time = std::chrono::time_point<Clock>;
+  using Duration = Clock::duration;
+
+  static Time stamp_to_chrono(ros::Time &stamp) {
+      return Time(std::chrono::seconds(stamp.sec) + std::chrono::nanoseconds(stamp.nsec));
+  }
+
+  static void log_warn(NodeHandle &node, const std::string &msg) {
+      ROS_WARN(msg);
+  }
+  
+  static void log_info(NodeHandle &node, const std::string &msg) {
+      ROS_INFO(msg);
+  }
+
+  template<typename Sub, typename F>
+  static auto subscribe(NodeHandle &node_handle, Sub &sub, std::string &topic_name, F cb, uint32_t queue_length) {
+      using MessageType = typename Sub::Msg;
+      sub.sub_ = node_handle.subscribe<MessageType>(topic_name, queue_length, cb);
       return sub;
   }
 };
+
 }
+
+using ROSAdapter = detail::ROS1Adapter;
+
 }  // namespace mf
 }  // namespace fsd
 
 #include <ros_dynamic_topic_synchronizer/impl/topic_synchronizer.hpp>
-namespace fsd {
-namespace mf {
-
-namespace ros1 {
-template <typename... MessagesT>
-using TopicSynchronizer = TopicSynchronizer<ROS1Adapter, MessagesT...>;
-}
-
-}  // namespace mf
-}  // namespace fsd

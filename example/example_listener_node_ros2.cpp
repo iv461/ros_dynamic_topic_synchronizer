@@ -17,12 +17,12 @@ int main(int argc, char **argv) {
   /// The type of the message synchronizer: Here we provide every distinct ROS-message type. Unlike
   /// the message_filters-synchronizer, we do not need to specify the *number* of topics of a
   /// message type we want to subscribe to at compile time: This can be done at runtime.
-  using SyncT = fsd::mf::ros2::TopicSynchronizer<sensor_msgs::msg::Image, sensor_msgs::msg::CameraInfo,
+  using SyncT = fsd::mf::TopicSynchronizer<sensor_msgs::msg::Image, sensor_msgs::msg::CameraInfo,
                                            sensor_msgs::msg::PointCloud2>;
 
   /// Create the approximate time policy with a 1s max message age and 0.2s timeout.
-  auto policy = std::make_unique<fsd::mf::ApproxTimePolicy>(rclcpp::Duration::from_seconds(1.0),
-                                                            rclcpp::Duration::from_seconds(0.2));
+  fsd::mf::Duration timeout = 200ms;
+  auto policy = std::make_unique<fsd::mf::ApproxTimePolicy>(1s, timeout);
 
   auto synchronizer = std::make_unique<SyncT>(
       node,
@@ -50,7 +50,8 @@ int main(int argc, char **argv) {
   /// This topic list can be provided at runtime, re-subscription is possible as well.
   /// The last argument ("1") is the queue size. It is the same for all subscribers.
   synchronizer->subscribe(
-      {{{"/image1", "/image2"}, {"/camera_info1", "/camera_info2"}, {"/point_cloud"}}}, 1);
+      {{{"/image1", "/image2"}, {"/camera_info1", "/camera_info2"}, {"/point_cloud"}}}, 
+      rclcpp::SystemDefaultsQoS());
 
   rclcpp::spin(node);
   rclcpp::shutdown();
