@@ -91,15 +91,17 @@ public:
 
     sync_policy_->set_topic_names_for_queues(flattened_topic_names_);
 
-    std::vector<SubOption> sub_options;
-    if(std::holds_alternative<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>>(sub_option)) {
-      sub_options = std::get<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>>(sub_option[i]);
-    } else {
-      sub_options.resize(topic_names.size(), std::get<SubOption>(sub_option));
-    }
 
     /// Subscribe too all message types
     detail::call_for_index<NUM_MESSAGE_TYPES>([&](auto Index) {
+
+      std::vector<SubOption> sub_options;
+      if(std::holds_alternative<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>>(sub_option)) {
+        sub_options = std::get<std::array<std::vector<SubOption>, NUM_MESSAGE_TYPES>>(sub_option[Index]);
+      } else {
+        sub_options.resize(topic_names_for_each_topic_type[Index].size(), std::get<SubOption>(sub_option));
+      }
+
       subscribe_single_message_type<Index>(std::get<Index>(topic_names_for_each_topic_type),
         sub_options);
     });

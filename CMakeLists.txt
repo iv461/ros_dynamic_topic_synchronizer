@@ -5,67 +5,30 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_options("-Wno-deprecated")
-    #add_compile_options("-Wsign-compare")
-    add_compile_options("-Werror=return-type")
-    add_compile_options("-Werror=return-local-addr")
-    # error in the constructor when initializing a member with itself in the initalizer list.
-    add_compile_options("-Werror=init-self")
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options("-Wno-deprecated")
+  add_compile_options("-Wsign-compare")
+  add_compile_options("-Werror=return-type")
+  add_compile_options("-Werror=return-local-addr")
+  # error in the constructor when initializing a member with itself in the initalizer list.
+  add_compile_options("-Werror=init-self")
 endif()
 
-find_package(catkin REQUIRED COMPONENTS
-    roscpp
-    sensor_msgs
-    rospy
-    std_msgs
-    )
-
-catkin_package(
-    INCLUDE_DIRS include
-    LIBRARIES fsd_topic_synchronizer
-    CATKIN_DEPENDS roscpp sensor_msgs 
-    #DEPENDS 
-    )
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 
 include_directories(
     include
-    ${catkin_INCLUDE_DIRS}
-    )
+)
 
-add_library(fsd_topic_synchronizer
-    src/topic_synchronizer.cpp
-    )
+ament_auto_add_library(ros_dynamic_topic_synchronizer
+  src/topic_synchronizer.cpp
+)
 
-target_link_libraries(fsd_topic_synchronizer
-    ${catkin_LIBRARIES}
-    )
+ament_auto_add_executable(example_listener_node
+  example/example_listener_node_ros2.cpp
+)
 
-add_executable(example_listener_node
-    example/example_listener_node_ros1.cpp
-    )
-
-add_dependencies(example_listener_node
-    ${${PROJECT_NAME}_EXPORTED_TARGETS}
-    ${catkin_EXPORTED_TARGETS}
-    )
-
-target_link_libraries(example_listener_node
-    ${catkin_LIBRARIES}
-    fsd_topic_synchronizer
-    )
-
-install(DIRECTORY include/${PROJECT_NAME}/
-    DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-    FILES_MATCHING PATTERN "*.hpp"
-    PATTERN ".svn" EXCLUDE
-    )
-
-# Add tests
-
-if(CATKIN_ENABLE_TESTING)
-  find_package(catkin REQUIRED rostest)
-
-  catkin_add_gtest(approx_time_policy_test test/approx_time_policy_test.cpp)
-  target_link_libraries(approx_time_policy_test fsd_topic_synchronizer ${catkin_LIBRARIES})
-endif() # CATKIN_ENABLE_TESTING
+ament_auto_package(
+  INSTALL_TO_SHARE
+)

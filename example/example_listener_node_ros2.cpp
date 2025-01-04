@@ -7,7 +7,8 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
 #include <ros_dynamic_topic_synchronizer/topic_synchronizer_ros2.hpp>
-#include <memory>
+
+using namespace std::literals::chrono_literals;
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);

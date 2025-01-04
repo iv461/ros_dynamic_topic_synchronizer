@@ -17,7 +17,7 @@
  *
  ****************************************************************************/
 
-#include <ros_dynamic_topic_synchronizer/policies.hpp>
+#include <ros_dynamic_topic_synchronizer/impl/policies.hpp>
 #include <iostream>
 
 namespace fsd {

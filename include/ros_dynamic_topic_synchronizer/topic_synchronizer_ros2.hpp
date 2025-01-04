@@ -2,6 +2,7 @@
 #pragma once 
 
 #include <rclcpp/rclcpp.hpp>
+#include "builtin_interfaces/msg/time.hpp"
 
 namespace fsd {
 namespace mf {
@@ -27,24 +28,24 @@ public:
     template<typename Msg>
     using Publisher = typename rclcpp::Publisher<Msg>::SharedPtr;
 
-    using NodeHandle = rclcpp::Node; /// Underlying Node type
+    using NodeHandle = std::shared_ptr<rclcpp::Node>; /// Underlying Node type
     /// A node interface, wrapping to some common
 
-    static Time stamp_to_chrono(rclcpp::Header::Stamp &stamp) {
-        return stamp.to_chrono();
+    static Time stamp_to_chrono(const builtin_interfaces::msg::Time &stamp) {
+        return Time(std::chrono::seconds(stamp.sec) + std::chrono::nanoseconds(stamp.nanosec));
     }
 
     static void log_warn(NodeHandle &node, const std::string &msg) {
-      RCLCPP_WARN(node->get_logger(), msg);
+      RCLCPP_WARN_STREAM(node->get_logger(), msg);
     }
     static void log_info(NodeHandle &node, const std::string &msg) {
-      RCLCPP_INFO(node->get_logger(), msg);
+      RCLCPP_INFO_STREAM(node->get_logger(), msg);
     }
 
     template<typename Sub, typename F>
     static auto subscribe(NodeHandle &node, Sub &sub, std::string &topic_name, F cb, rclcpp::QoS &qos) {
         using MessageType = typename Sub::ROSMessageType;
-        return node->create_subscription<Msg>(topic_name, qos, cb);
+        return node->create_subscription<MessageType>(topic_name, qos, cb);
     }
 
     

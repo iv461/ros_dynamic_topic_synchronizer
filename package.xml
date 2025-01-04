@@ -1,20 +1,29 @@
 <?xml version="1.0"?>
-<package format="2">
-  <name>ros_dynamic_topic_synchronizer</name>
-  <version>1.0.0</version>
-  <description>A flexible topic synchronizer for a varible number of topics and a timeout</description>
-  <author email="ivo.ivanov@hs-augsburg.de">Ivo Ivanov</author>
-  <maintainer email="ivo.ivanov@hs-augsburg.de">Ivo Ivanov</maintainer>
 
-  <license>Apache-2</license>
+<?xml-model
+   href="http://download.ros.org/schema/package_format3.xsd"
+   schematypens="http://www.w3.org/2001/XMLSchema"?>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  
-  <depend>roscpp</depend>
-  <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
+<package format="3">
+ <name>ros_dynamic_topic_synchronizer</name>
+ <version>0.1.0</version>
+ <description>A flexible topic synchronizer for a varible number of topics and a timeout</description>
 
-  <test_depend>roscpp</test_depend>
-  <test_depend>rostest</test_depend>
-  
+ <author email="ivo.ivanov@tha.de">Ivo Ivanov</author>
+ <maintainer email="ivo.ivanov@tha.de">Ivo Ivanov</maintainer>
+
+ <license>Apache-2</license>
+
+ <buildtool_depend>ament_cmake_auto</buildtool_depend>
+ 
+ <depend>rclcpp</depend>
+ <depend>sensor_msgs</depend>
+ <depend>std_msgs</depend>
+
+ <test_depend>ament_lint_auto</test_depend>
+ <test_depend>ament_lint_common</test_depend>
+
+ <export>
+   <build_type>ament_cmake</build_type>
+ </export>
 </package>
