@@ -20,15 +20,9 @@ struct ROS1Adapter {
   using MsgPtr = boost::shared_ptr<const MsgT>;
   using NodeHandle = ros::NodeHandle;
 
-  /* @brief Typed subscriber, to know how to subscribe without having to specify the type of the message to the subscribe function.
-  * Needed only for ROS 1 since ROS 2 does not use the type-erasing subscribers anymore.
-  */
-  template <typename _MessageT>
-  struct Subscriber {
-    using Msg = _MessageT;
-    ros::Subscriber sub_;
-  };
-
+  template <typename _>
+  using Subscriber = ros::Subscriber;
+  
   using Clock = std::chrono::system_clock;
   using Time = std::chrono::time_point<Clock>;
   using Duration = Clock::duration;
@@ -48,9 +42,8 @@ struct ROS1Adapter {
   }
 
   template<typename MessageType, typename F>
-  static auto subscribe(NodeHandle &node_handle, Subscriber<MessageType> &sub, const std::string &topic_name, F cb, uint32_t queue_length) {
-      sub.sub_ = node_handle.subscribe<MessageType>(topic_name, queue_length, cb);
-      return sub;
+  static auto subscribe(NodeHandle &node_handle, const std::string &topic_name, F cb, uint32_t queue_length) {
+      return node_handle.subscribe<MessageType>(topic_name, queue_length, cb);
   }
 };
 

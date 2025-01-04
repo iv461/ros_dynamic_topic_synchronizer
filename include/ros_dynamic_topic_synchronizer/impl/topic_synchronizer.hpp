@@ -182,7 +182,7 @@ private:
       using ThisMsg = typename std::tuple_element_t<message_index, std::tuple<MessagesT...>>;
 
       subs_array.at(i_topic) = 
-        ROSAdapter::subscribe<ThisMsg>(node_handle_, subs_array.at(i_topic), topic_name, 
+        ROSAdapter::subscribe<ThisMsg>(node_handle_, topic_name, 
           [this, queue_index](MsgPtr<ThisMsg> msg) { 
               msg_callback<message_index>(msg, queue_index); }, sub_options.at(i_topic));
     }

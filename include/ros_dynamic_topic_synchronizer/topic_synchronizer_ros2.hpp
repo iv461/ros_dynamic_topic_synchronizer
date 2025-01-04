@@ -44,7 +44,7 @@ public:
     }
 
     template<typename MessageType, typename F>
-    static auto subscribe(NodeHandle &node, Subscriber<MessageType> &sub, const std::string &topic_name, F cb, const rclcpp::QoS &qos) {
+    static auto subscribe(NodeHandle &node, const std::string &topic_name, F cb, const rclcpp::QoS &qos) {
         return node->create_subscription<MessageType>(topic_name, qos, cb);
     }
 
