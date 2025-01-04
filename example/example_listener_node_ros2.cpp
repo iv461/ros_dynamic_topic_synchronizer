@@ -1,17 +1,18 @@
 /// Example node that shows how to use the synchronizer from ROS 2.
 /// It subscribes to two topics, yielding images and point clouds.
+
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 
-#include <ros_dynamic_topic_synchronizer/topic_synchronizer.hpp>
+#include <ros_dynamic_topic_synchronizer/topic_synchronizer_ros2.hpp>
 #include <memory>
 
 int main(int argc, char **argv) {
   rclcpp::init(argc, argv);
 
-  auto node = rclcpp::Node::make_shared("example_listener_node");
+  auto node = rclcpp::Node::make_shared("ros_dynamic_topic_synchronizer_listener");
 
   /// The type of the message synchronizer: Here we provide every distinct ROS-message type. Unlike
   /// the message_filters-synchronizer, we do not need to specify the *number* of topics of a

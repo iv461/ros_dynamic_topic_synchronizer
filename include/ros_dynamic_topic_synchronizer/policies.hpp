@@ -146,10 +146,12 @@ struct ApproxTimePolicy : public SyncPolicy {
    * contain messages from this topic. If no timeout is given, no topic is allowed to time out.
    * In this case, no set of synchronized messages is emmitted as long as no every topic sends
    * messages.
+   * @param print_verbose Prints which messages arrived and on which we are still waiting, for easier debugging
    *
    */
   ApproxTimePolicy(
       const Duration &max_msg_age, const OptionalT<Duration> &timeout,
+      bool print_verbose,
       std::function<void(const std::vector<MessageIdT> &message_ids)> emit_messages = nullptr,
       std::function<void(const MessageIdT &message_id)> removed_buffered_ms = nullptr);
 
@@ -194,6 +196,9 @@ private:
   OptionalT<Duration> max_allowed_difference_;
   /// If no timeout is set, then all topics are required always
   OptionalT<Duration> timeout_{std::chrono::seconds(1)};
+
+  bool print_verbose_{false};
+  
   /// @brief the pivot is a queue index
   OptionalT<uint32_t> pivot_;
 

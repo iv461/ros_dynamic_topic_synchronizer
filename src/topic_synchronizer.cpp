@@ -25,16 +25,18 @@ namespace mf {
 
 ApproxTimePolicy::ApproxTimePolicy(
     const Duration &max_msg_age, const OptionalT<Duration> &timeout,
+    bool print_verbose,
     std::function<void(const std::vector<MessageIdT> &message_ids)> emit_messages,
     std::function<void(const MessageIdT &message_id)> removed_buffered_ms)
     : SyncPolicy(emit_messages, removed_buffered_ms) {
   max_msg_age_ = max_msg_age;
   timeout_ = timeout;
+  print_verbose_ = print_verbose;
 }
 
 void ApproxTimePolicy::add(MessageIdT msg_id) {
-  auto cutoff = msg_id.stamp - max_msg_age_;
   last_timestamps_.at(msg_id.queue_index) = msg_id.stamp;
+  auto cutoff = msg_id.stamp - max_msg_age_;
   remove_too_old_msgs(cutoff);
   determine_timeouts(msg_id.stamp);
   auto &head = heads_.at(msg_id.queue_index);
@@ -46,7 +48,7 @@ void ApproxTimePolicy::add(MessageIdT msg_id) {
       std::cout <<
           "WARNING: Trying to add a timestamp which is older than the newest, messages are "
           "arriving "
-          "in non-chronological order. Resetting... (message in queue has timestamp: "
+          "in non-chronological order. Resetting the syncrhonizer... (message in queue has timestamp: "
           << newest_timestamp << ", timestamp of the new message: " << msg_id.stamp << ")";
       */
       reset();
@@ -64,7 +66,7 @@ void ApproxTimePolicy::add(MessageIdT msg_id) {
   } else {
     head = msg_id;
   }
-  while (try_to_emit())
+  while (try_to_emit()) /// Now emit while there is something to emit
     ;
 }
 

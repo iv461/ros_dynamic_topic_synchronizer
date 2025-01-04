@@ -1,6 +1,5 @@
 /// TODO Copyright notice
 /// The implementation of the topic synchroniuzer: Subscribing, combining messages using the policy, and calling the user callback.
-/// Generic, for both ROS 1 and ROS 2.
 #pragma once
 
 #include <array>
@@ -24,13 +23,13 @@ namespace mf {
 /**
  * @brief  The implementation of the topic synchronizer: Subscribing, combining messages using the policy, and calling the user callback.
  *
- * @tparam use_ros1: Whether to use the ROS 1 or ROS 2 API. Generic implementation based on conditional compilation.  
+ * @tparam ROSAdapter: An adapter that abstracts the ROS API, so that this works for both ROS 1 and 2.
  *
  * @tparam MessagesT a list of the different message types to be synchronized. No pointer types
  * should be given, instead the plain message type, for example sensor_msgs::Image.
  *
  */
-template <bool use_ros1, typename... MessagesT>
+template <typename ROSAdapter, typename... MessagesT>
 class TopicSynchronizer {
   constexpr static auto NUM_MESSAGE_TYPES = sizeof...(MessagesT);
 
@@ -51,7 +50,7 @@ public:
    * @param sync_policy The already created synchronization policy with which the topics are
    * synchronized.
    */
-  TopicSynchronizer(const fsd::mf::detail::NodeHandle &node_handle, UserCallbackT user_callback,
+  TopicSynchronizer(const ROSAdapter::NodeHandle &node_handle, UserCallbackT user_callback,
                     std::unique_ptr<SyncPolicy> sync_policy)
       : sync_policy_(std::move(sync_policy)),
         node_handle_(node_handle),
@@ -155,7 +154,8 @@ private:
       const auto &topic_name = topic_names.at(i_topic);
       auto queue_index = topic_name_to_queue_index_.at(topic_name);
 
-      if constexpr (use_ros1){
+      subs_array.at(i_topic) = 
+        ROSAdapter::subscribe(node_handle_, topic_name, queue_length, )
         subs_array.at(i_topic).subscribe(
             node_handle_, topic_name, queue_length,
             [this, queue_index](const auto &msg) { msg_callback<message_index>(msg, queue_index); });
